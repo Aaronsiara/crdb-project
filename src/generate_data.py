@@ -1,16 +1,3 @@
-"""
-generate_data.py
-
-Generates a synthetic customer transaction dataset that mimics the shape of
-retail / mobile-banking data (e.g. CRDB SimBanking-style usage). This is for
-PROTOTYPING the segmentation pipeline before plugging in real (anonymized)
-field-work data.
-
-Run:
-    python src/generate_data.py
-Output:
-    data/customers_synthetic.csv
-"""
 
 import numpy as np
 import pandas as pd
