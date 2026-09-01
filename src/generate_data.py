@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 
 RNG = np.random.default_rng(42)
-N_CUSTOMERS = 2000
+N_CUSTOMERS = 5000
 
 REGIONS = [
     "Dar es Salaam", "Arusha", "Mwanza", "Dodoma",
