@@ -2,10 +2,14 @@
 /**
  * dashboard.php
  *
- * Enhanced PHP dashboard with sidebar navigation and a direct CSV data ingestion engine.
+ * Simple PHP dashboard to display customer segmentation results produced by
+ * segment_any_data.py (or segmentation.py). Point $outputDir at the folder
+ * that contains segmented_data.csv, segment_profiles.csv, elbow_plot.png,
+ * and pca_clusters.png.
  *
- * Run locally:
+ * Run locally with PHP's built-in server:
  *     php -S localhost:8000
+ * then open http://localhost:8000/dashboard.php
  */
 
 // ---- Configuration: point this at your output folder ----
@@ -26,14 +30,8 @@ function readCsv($path) {
     $rows = [];
     if (($handle = fopen($path, 'r')) !== false) {
         $headers = fgetcsv($handle);
-        if ($headers === false) {
-            fclose($handle);
-            return null;
-        }
         while (($row = fgetcsv($handle)) !== false) {
-            if (count($headers) === count($row)) {
-                $rows[] = array_combine($headers, $row);
-            }
+            $rows[] = array_combine($headers, $row);
         }
         fclose($handle);
     }
@@ -43,43 +41,7 @@ function readCsv($path) {
 $profiles = readCsv($profilesPath);
 $data     = readCsv($dataPath);
 
-// ---- Direct CSV Row Ingestion Engine ----
-$successMessage = '';
-$errorMessage = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'insert_data') {
-    if ($data && !empty($data['headers'])) {
-        $newRow = [];
-        foreach ($data['headers'] as $header) {
-            if ($header === 'segment') {
-                // Default manually inserted records to -1 (Unclustered) until re-segmented via Python
-                $newRow[] = -1;
-            } else {
-                // Sanitize input text, set blank if not provided
-                $newRow[] = isset($_POST['field_' . str_replace(' ', '_', $header)]) ? trim($_POST['field_' . str_replace(' ', '_', $header)]) : '';
-            }
-        }
-        
-        if (file_exists($dataPath) && is_writable($dataPath)) {
-            $handle = fopen($dataPath, 'a');
-            if ($handle !== false) {
-                fputcsv($handle, $newRow);
-                fclose($handle);
-                $successMessage = "Record inserted successfully! Refreshing dataset...";
-                // Reload dataset to display newly added row in grid layout
-                $data = readCsv($dataPath);
-            } else {
-                $errorMessage = "Failed to access system file data streams.";
-            }
-        } else {
-            $errorMessage = "Target dataset file path is non-writable or does not exist.";
-        }
-    } else {
-        $errorMessage = "Cannot insert record. Base dataset headers could not be determined.";
-    }
-}
-
-// Preview only the first N rows of the raw segmented data
+// Preview only the first N rows of the raw segmented data (it can be large)
 $previewLimit = 25;
 $dataPreviewRows = $data ? array_slice($data['rows'], 0, $previewLimit) : [];
 $totalRecords = $data ? count($data['rows']) : 0;
@@ -88,7 +50,7 @@ function fmtNum($val) {
     if (is_numeric($val)) {
         return number_format((float)$val, 2);
     }
-    return htmlspecialchars($val ?? '');
+    return htmlspecialchars($val);
 }
 ?>
 <!DOCTYPE html>
@@ -105,7 +67,6 @@ function fmtNum($val) {
         --border: #e1e5eb;
         --text: #1a1a1a;
         --text-muted: #5c6470;
-        --sidebar-width: 320px;
     }
     * { box-sizing: border-box; }
     body {
@@ -113,45 +74,27 @@ function fmtNum($val) {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         background: var(--bg);
         color: var(--text);
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
     }
     header {
-        background: var(--crdb-green);
+        background: var(--crdb-blue);
         color: white;
-        padding: 20px 32px;
+        padding: 24px 32px;
         border-bottom: 4px solid var(--crdb-gold);
-        z-index: 10;
     }
-    header h1 { margin: 0 0 4px 0; font-size: 22px; }
-    header p { margin: 0; color: #cfe0f5; font-size: 14px; }
-    
-    /* Layout Container splits Sidebar and Main Panels */
-    .app-container {
-        display: flex;
-        flex: 1;
-        position: relative;
+    header h1 {
+        margin: 0 0 4px 0;
+        font-size: 22px;
     }
-    
-    /* Responsive Collapsible Sidebar */
-    aside {
-        width: var(--sidebar-width);
-        background: #ffffff;
-        border-right: 1px solid var(--border);
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        overflow-y: auto;
+    header p {
+        margin: 0;
+        color: #cfe0f5;
+        font-size: 14px;
     }
-    
     main {
-        flex: 1;
+        max-width: 1100px;
+        margin: 0 auto;
         padding: 24px 32px 64px;
-        overflow-x: hidden;
     }
-    
     .card {
         background: var(--card-bg);
         border: 1px solid var(--border);
@@ -162,88 +105,94 @@ function fmtNum($val) {
     .card h2 {
         margin-top: 0;
         font-size: 16px;
-        color: var(--crdb-green);
+        color: var(--crdb-blue);
         border-bottom: 1px solid var(--border);
         padding-bottom: 10px;
     }
-    
-    /* Sidebar Widgets & Input Form Elements */
+    .stat-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
     .stat-box {
         background: #f0f4f9;
         border-radius: 6px;
         padding: 12px 18px;
-        margin-bottom: 12px;
+        flex: 1;
+        min-width: 140px;
     }
-    .stat-box .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
-    .stat-box .value { font-size: 20px; font-weight: 600; color: var(--crdb-green); word-break: break-all; }
-    
-    .form-group {
-        margin-bottom: 14px;
-    }
-    .form-group label {
-        display: block;
+    .stat-box .label {
         font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .stat-box .value {
+        font-size: 22px;
         font-weight: 600;
-        margin-bottom: 6px;
-        color: var(--text);
-        text-transform: capitalize;
+        color: var(--crdb-blue);
     }
-    .form-group input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        font-size: 13px;
-    }
-    .form-group input:focus {
-        border-color: var(--crdb-green);
-        outline: none;
-    }
-    .btn-submit {
-        background: var(--crdb-green);
-        color: white;
-        border: none;
-        padding: 10px 16px;
-        font-weight: 600;
-        border-radius: 4px;
-        cursor: pointer;
+    table {
+        border-collapse: collapse;
         width: 100%;
         font-size: 13px;
-        transition: background 0.2s;
     }
-    .btn-submit:hover { background: #285700; }
-    
-    .alert {
-        padding: 10px 14px;
-        border-radius: 4px;
-        font-size: 13px;
-        margin-bottom: 14px;
+    th, td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        white-space: nowrap;
     }
-    .alert-success { background: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
-    .alert-error { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
-
-    table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
-    th { background: #f0f4f9; color: var(--crdb-green); font-weight: 600; position: sticky; top: 0; }
+    th {
+        background: #f0f4f9;
+        color: var(--crdb-blue);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+    }
     tr:hover { background: #fafbfc; }
-    
     .table-wrap {
         overflow-x: auto;
-        max-height: 400px;
+        max-height: 480px;
         overflow-y: auto;
         border: 1px solid var(--border);
         border-radius: 6px;
     }
-    .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .img-grid img { width: 100%; border: 1px solid var(--border); border-radius: 6px; }
-    .missing { color: #b23b3b; background: #fdecec; border: 1px solid #f5c2c2; border-radius: 6px; padding: 14px 18px; font-size: 14px; }
-    .segment-pill { display: inline-block; background: var(--crdb-gold); color: #3a2a00; font-weight: 600; border-radius: 12px; padding: 2px 10px; font-size: 12px; }
-    
-    footer { text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px; border-top: 1px solid var(--border); background: #ffffff; }
-    
-    @media (max-width: 900px) {
-        .app-container { flex-direction: column; }
-        aside { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+    .img-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .img-grid img {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+    }
+    .missing {
+        color: #b23b3b;
+        background: #fdecec;
+        border: 1px solid #f5c2c2;
+        border-radius: 6px;
+        padding: 14px 18px;
+        font-size: 14px;
+    }
+    .segment-pill {
+        display: inline-block;
+        background: var(--crdb-gold);
+        color: #3a2a00;
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 2px 10px;
+        font-size: 12px;
+    }
+    footer {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 12px;
+        padding: 20px;
+    }
+    @media (max-width: 700px) {
         .img-grid { grid-template-columns: 1fr; }
     }
 </style>
@@ -255,11 +204,11 @@ function fmtNum($val) {
     <p>Data Department Field Work · PCA + K-Means Segmentation Results</p>
 </header>
 
-<div class="app-container">
+<main>
 
-    <!-- SIDEBAR NAVIGATION PANEL -->
-    <aside>
-        <div>
+    <div class="card">
+        <h2>Overview</h2>
+        <div class="stat-row">
             <div class="stat-box">
                 <div class="label">Total Records</div>
                 <div class="value"><?= $totalRecords ?></div>
@@ -269,26 +218,105 @@ function fmtNum($val) {
                 <div class="value"><?= $profiles ? count($profiles['rows']) : '—' ?></div>
             </div>
             <div class="stat-box">
-                <div class="label">Output Directory</div>
-                <div class="value" style="font-size:12px; font-weight:normal; color:var(--text-muted);"><?= htmlspecialchars($outputDir) ?></div>
+                <div class="label">Output Folder</div>
+                <div class="value" style="font-size:14px;"><?= htmlspecialchars($outputDir) ?></div>
             </div>
         </div>
+    </div>
 
-        <!-- NEW RECORD DATA INGESTION FORM -->
-        <div style="border-top: 1px solid var(--border); padding-top: 20px;">
-            <h3 style="margin-top:0; font-size:14px; color:var(--crdb-green); text-transform:uppercase;">Insert New Record</h3>
-            
-            <?php if (!empty($successMessage)): ?>
-                <div class="alert alert-success"><?= $successMessage ?></div>
-            <?php endif; ?>
-            <?php if (!empty($errorMessage)): ?>
-                <div class="alert alert-error"><?= $errorMessage ?></div>
-            <?php endif; ?>
+    <div class="card">
+        <h2>Segment Profiles</h2>
+        <?php if ($profiles && count($profiles['rows']) > 0): ?>
+            <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <?php foreach ($profiles['headers'] as $h): ?>
+                            <th><?= htmlspecialchars($h) ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($profiles['rows'] as $row): ?>
+                        <tr>
+                            <?php foreach ($profiles['headers'] as $h): ?>
+                                <td>
+                                    <?php if ($h === 'segment'): ?>
+                                        <span class="segment-pill">Segment <?= htmlspecialchars($row[$h]) ?></span>
+                                    <?php else: ?>
+                                        <?= fmtNum($row[$h]) ?>
+                                    <?php endif; ?>
+                                </td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            </div>
+        <?php else: ?>
+            <div class="missing">
+                segment_profiles.csv not found in <code><?= htmlspecialchars($outputDir) ?></code>.
+                Run segment_any_data.py first.
+            </div>
+        <?php endif; ?>
+    </div>
 
-            <?php if ($data && !empty($data['headers'])): ?>
-                <form method="POST" action="">
-                    <input type="hidden" name="action" value="insert_data">
-                    
-                    <?php foreach ($data['headers'] as $header): ?>
-                        <?php if ($header === 'segment') continue; // Hidden field handled by server system logic ?>
-                        <div class="form-group">
+    <div class="card">
+        <h2>Visualizations</h2>
+        <div class="img-grid">
+            <div>
+                <?php if (file_exists($elbowImg)): ?>
+                    <img src="<?= htmlspecialchars($elbowImg) ?>" alt="Elbow plot">
+                <?php else: ?>
+                    <div class="missing">elbow_plot.png not found.</div>
+                <?php endif; ?>
+            </div>
+            <div>
+                <?php if (file_exists($pcaImg)): ?>
+                    <img src="<?= htmlspecialchars($pcaImg) ?>" alt="PCA cluster plot">
+                <?php else: ?>
+                    <div class="missing">pca_clusters.png not found.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Segmented Data Preview <?= $totalRecords > $previewLimit ? "(first {$previewLimit} of {$totalRecords} rows)" : '' ?></h2>
+        <?php if ($data && count($dataPreviewRows) > 0): ?>
+            <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <?php foreach ($data['headers'] as $h): ?>
+                            <th><?= htmlspecialchars($h) ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($dataPreviewRows as $row): ?>
+                        <tr>
+                            <?php foreach ($data['headers'] as $h): ?>
+                                <td><?= htmlspecialchars($row[$h]) ?></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            </div>
+        <?php else: ?>
+            <div class="missing">
+                segmented_data.csv not found in <code><?= htmlspecialchars($outputDir) ?></code>.
+                Run segment_any_data.py first.
+            </div>
+        <?php endif; ?>
+    </div>
+
+</main>
+
+<footer>
+    Generated by dashboard.php — CRDB Data Department Field Work Project
+</footer>
+
+</body>
+</html>
