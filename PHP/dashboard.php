@@ -63,7 +63,7 @@ function fmtNum($val) {
         --crdb-green: #357600;
         --crdb-gold: #f2a900;
         --bg: #10e410e7;
-        --card-bg: #ffffff;
+        --card-bg: #ffffffae;
         --border: #e1e5eb;
         --text: #1a1a1a;
         --text-muted: #5c6470;
