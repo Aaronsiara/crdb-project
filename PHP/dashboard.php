@@ -59,6 +59,67 @@ function fmtNum($val) {
 <meta charset="UTF-8">
 <title>CRDB Customer Segmentation Dashboard</title>
 <style>
+     body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+        height: 100%; /* Full height */
+        width: 220px; /* Sidebar width */
+        position: fixed; /* Stay in place */
+        top: 0;
+        left: 0;
+        background-color: #111; /* Dark background */
+        padding-top: 20px;
+        overflow-x: hidden; /* Disable horizontal scroll */
+    }
+
+    /* Sidebar links */
+    .sidebar a {
+        padding: 12px 16px;
+        text-decoration: none;
+        font-size: 18px;
+        color: white;
+        display: block;
+        transition: background 0.3s;
+    }
+
+    /* Hover effect */
+    .sidebar a:hover {
+        background-color: #575757;
+    }
+
+    /* Main content */
+    .main-content {
+        margin-left: 220px; /* Same as sidebar width */
+        padding: 20px;
+    }
+
+    /* Responsive: stack sidebar on top for small screens */
+    @media screen and (max-width: 600px) {
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+        }
+        .main-content {
+            margin-left: 0;
+        }
+    }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <a href="#home">Home</a>
+    <a href="#services">Services</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+</div>
+
     :root {
         --crdb-green: #357600;
         --crdb-gold: #f2a900;
