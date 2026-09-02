@@ -60,7 +60,7 @@ function fmtNum($val) {
 <title>CRDB Customer Segmentation Dashboard</title>
 <style>
     :root {
-        --crdb-blue: #003876;
+        --crdb-blue: #007608;
         --crdb-gold: #f2a900;
         --bg: #f5f7fa;
         --card-bg: #ffffff;
