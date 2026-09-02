@@ -1,16 +1,8 @@
 """
-segmentation.py
-
 Core pipeline: load customer data -> scale features -> PCA for
 dimensionality reduction / visualization -> KMeans clustering ->
 profile each resulting segment.
 
-Run:
-    python src/segmentation.py
-Outputs:
-    outputs/pca_clusters.png
-    outputs/elbow_plot.png
-    outputs/segment_profiles.csv
 """
 
 import argparse

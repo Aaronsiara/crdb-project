@@ -4,18 +4,17 @@ import pandas as pd
 from pathlib import Path
 
 RNG = np.random.default_rng(42)
-N_CUSTOMERS = 5000
+N_CUSTOMERS = 500
+
 
 REGIONS = [
     "Dar es Salaam", "Arusha", "Mwanza", "Dodoma",
-    "Mbeya", "Zanzibar", "Morogoro", "Tanga"
+    "Mbeya", "Zanzibar", "Morogoro", "Tanga", "Kigoma", "Iringa", "Ruvuma"
 ]
 
 
 def generate_customers(n=N_CUSTOMERS):
-    """Create synthetic customers from a few latent behavioral archetypes,
-    so the clustering step has real structure to recover."""
-
+  
     archetype = RNG.choice(
         ["urban_digital", "rural_saver", "dormant", "high_freq_trader", "loan_active"],
         size=n,
