@@ -62,8 +62,8 @@ function fmtNum($val) {
     :root {
         --crdb-green: #357600;
         --crdb-gold: #f2a900;
-        --bg: #d4e211e7;
-        --card-bg: #12c53f;
+        --bg: #10e410e7;
+        --card-bg: #ffffff;
         --border: #e1e5eb;
         --text: #1a1a1a;
         --text-muted: #5c6470;
