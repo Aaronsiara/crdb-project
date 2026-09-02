@@ -23,13 +23,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-FEATURES = [
-    "txn_freq_month",
-    "avg_txn_value_tzs",
-    "mobile_login_freq_month",
-    "savings_balance_tzs",
-    "loan_active_flag",
-    "days_since_last_txn",
+FEATURES = ["txn_freq_month", "avg_txn_value_tzs","mobile_login_freq_month","savings_balance_tzs","loan_active_flag","days_since_last_txn",
 ]
 
 ROOT = Path(__file__).resolve().parent.parent
