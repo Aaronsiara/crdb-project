@@ -20,6 +20,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'position',
+        'avatar_path',
     ];
 
     protected $hidden = [
@@ -43,5 +45,32 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Public URL for this user's profile photo, or null if they don't have
+     * one. Photos are stored on the "public" disk (storage/app/public/...),
+     * which requires `php artisan storage:link` to be web-accessible.
+     */
+    public function avatarUrl(): ?string
+    {
+        return $this->avatar_path ? asset('storage/' . $this->avatar_path) : null;
+    }
+
+    /**
+     * The fixed list of Data Department positions selectable at
+     * registration. Keeping this as a static list (rather than a separate
+     * DB table) keeps things simple for a small team.
+     */
+    public static function positions(): array
+    {
+        return [
+            'Data Analyst',
+            'Data Engineer',
+            'Data Scientist',
+            'Database Administrator',
+            'Business Intelligence Officer',
+            'Data Department Team Lead',
+        ];
     }
 }

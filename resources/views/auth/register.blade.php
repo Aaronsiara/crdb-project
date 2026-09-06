@@ -8,7 +8,7 @@
     <h1>Create an Account</h1>
     <p class="subtitle">CRDB Customer Segmentation — Data Department</p>
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
         @csrf
 
         <div class="mb-3">
@@ -16,6 +16,29 @@
             <input id="name" type="text" name="name" value="{{ old('name') }}"
                    class="form-control @error('name') is-invalid @enderror" autofocus required>
             @error('name')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="position" class="form-label">Data Department Position</label>
+            <select id="position" name="position" class="form-select @error('position') is-invalid @enderror" required>
+                <option value="" disabled {{ old('position') ? '' : 'selected' }}>Select your role in the team...</option>
+                @foreach ($positions as $position)
+                    <option value="{{ $position }}" {{ old('position') === $position ? 'selected' : '' }}>{{ $position }}</option>
+                @endforeach
+            </select>
+            @error('position')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="avatar" class="form-label">Profile Photo (optional)</label>
+            <input id="avatar" type="file" name="avatar" accept="image/*"
+                   class="form-control @error('avatar') is-invalid @enderror">
+            <div class="form-text">This photo will show up next to your name in the app sidebar.</div>
+            @error('avatar')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>

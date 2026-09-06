@@ -132,7 +132,22 @@
     </nav>
     @auth
     <div class="user-box">
-        <div><strong>{{ auth()->user()->name }}</strong></div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            @if (auth()->user()->avatarUrl())
+                <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }}"
+                     style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--crdb-gold);">
+            @else
+                <div style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+            @endif
+            <div>
+                <div><strong>{{ auth()->user()->name }}</strong></div>
+                @if (auth()->user()->position)
+                    <div style="font-size:11px; color:#cfe8db;">{{ auth()->user()->position }}</div>
+                @endif
+            </div>
+        </div>
         <span class="role">{{ ucfirst(auth()->user()->role) }}</span>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
