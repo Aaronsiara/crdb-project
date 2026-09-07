@@ -1,59 +1,83 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CRDB Bank Tanzania — Customer Segmentation for Financial Inclusion
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A data science project prototyping a customer segmentation pipeline for retail
+and mobile banking (SimBanking-style) customers, built during field work with
+the CRDB Data Department.
 
-## About Laravel
+## Objective
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Group customers into behavioral segments — e.g. "urban digital-first users,"
+"rural savers," "dormant accounts," "high-frequency traders," "active loan
+holders" — using unsupervised learning (PCA + K-Means) on transaction and
+account activity data.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Why it matters to CRDB:** these segments can directly inform targeted
+product design (microloans vs. savings products vs. digital-literacy
+campaigns), churn/dormancy interventions, and regional financial-inclusion
+strategy.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Project structure
 
-## Learning Laravel
+```
+crdb-customer-segmentation/
+├── data/                    # datasets (synthetic sample committed; real field data goes here)
+├── src/
+│   ├── generate_data.py     # builds a synthetic dataset for prototyping
+│   └── segmentation.py      # feature scaling, PCA, KMeans, segment profiling
+├── notebooks/                # exploratory analysis notebooks
+├── outputs/                  # generated plots and segment profile tables
+├── requirements.txt
+└── README.md
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Approach
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Feature engineering** — transaction frequency, average transaction
+   value, mobile login frequency, savings balance, loan activity flag, and
+   recency (days since last transaction).
+2. **Scaling** — standardize features so no single variable (e.g. balance in
+   TZS) dominates the distance metric.
+3. **PCA** — reduce to 2 components for visualization and to check for
+   multicollinearity between features.
+4. **K-Means** — cluster customers; elbow method used to select k.
+5. **Profiling** — summarize each segment's average behavior to translate
+   clusters into business-readable personas.
 
-## Laravel Sponsors
+## Getting started
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+python -m venv venv
+source venv/bin/activate  # venv\Scripts\activate on Windows
+pip install -r requirements.txt
 
-### Premium Partners
+# 1. generate a synthetic dataset to prototype against
+python src/generate_data.py
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 2. run the segmentation pipeline
+python src/segmentation.py --k 5
+```
 
-## Contributing
+Outputs land in `outputs/`: an elbow plot, a PCA scatter plot colored by
+segment, and a `segment_profiles.csv` summarizing each segment's average
+behavior.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Using real field-work data
 
-## Code of Conduct
+Replace `data/customers_synthetic.csv` with an anonymized export that has the
+same column names as `FEATURES` in `src/segmentation.py` (or edit that list
+to match whatever fields the Data Department can share). No code changes
+needed beyond that to re-run the pipeline on real data.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Status / Next steps
 
-## Security Vulnerabilities
+- [x] Synthetic data generator to prototype the pipeline end-to-end
+- [x] PCA + KMeans segmentation with elbow-based k selection
+- [ ] Validate segment count and labels with the Data Department against
+      known business personas
+- [ ] Swap in real (anonymized) field-work data
+- [ ] Phase 2: loan default early-warning model using the same customer base
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Author
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Aaron — Data Science student, Eastern Africa Statistical Training Centre
+(EASTC), Dar es Salaam.
