@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 
 RNG = np.random.default_rng(42)
-N_CUSTOMERS = 500
+N_CUSTOMERS = 5000
 
 
 REGIONS = [
@@ -83,7 +83,7 @@ def generate_customers(n=N_CUSTOMERS):
 
 if __name__ == "__main__":
     df = generate_customers()
-    out_path = Path(__file__).resolve().parent.parent / "data" / "customers_synthetic.csv"
+    out_path = Path(__file__).resolve().parent.parent / "data" / "customers.csv"
     out_path.parent.mkdir(exist_ok=True)
     df.to_csv(out_path, index=False)
     print(f"Wrote {len(df)} rows to {out_path}")
