@@ -20,7 +20,11 @@ Outputs (written next to the input file, in a folder named "<input>_segmentation
     elbow_plot.png
     pca_clusters.png
 """
-
+import os
+import tempfile
+if 'HOME' not in os.environ:
+    os.environ['HOME'] = tempfile.gettempdir()
+    
 import argparse
 from pathlib import Path
 
