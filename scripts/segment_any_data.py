@@ -22,8 +22,10 @@ Outputs (written next to the input file, in a folder named "<input>_segmentation
 """
 import os
 import tempfile
-if 'HOME' not in os.environ:
-    os.environ['HOME'] = tempfile.gettempdir()
+
+# Force matplotlib to use the system temp directory for its config cache
+os.environ['MPLCONFIGDIR'] = tempfile.gettempdir()
+
     
 import argparse
 from pathlib import Path
