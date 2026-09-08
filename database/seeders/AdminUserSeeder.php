@@ -23,7 +23,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Admin',
                 'role' => 'admin',
-                'password' => Hash::make('crdb-admin-2026'),
+                'password' => Hash::make('admin1234'),
             ]
         );
     }
