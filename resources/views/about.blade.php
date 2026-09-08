@@ -24,6 +24,7 @@
             hand each time.
         </p>
     </div>
+
 </div>
 
 <div class="card">
