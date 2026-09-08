@@ -84,7 +84,7 @@
     <div class="card-header">Author</div>
     <div class="card-body mb-0">
         <p class="mb-0">
-            Built by Aaron, a Data Science student at the Eastern Africa
+            Built by Aaron Siarra , a Data Science student at the Eastern Africa
             Statistical Training Centre (EASTC), Dar es Salaam, during field
             work placement with CRDB Bank Tanzania's Data Department.
         </p>
