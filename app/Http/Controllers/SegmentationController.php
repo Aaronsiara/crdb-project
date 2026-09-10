@@ -93,8 +93,7 @@ class SegmentationController extends Controller
 
     /**
      * Displays the results dashboard for a specific run. Non-admins may
-     * only view their own runs (enforced in SegmentationRunPolicy-style
-     * check below).
+     * only view their own runs (enforced in checkOwnership() below).
      */
     public function show(string $run)
     {
@@ -163,6 +162,13 @@ class SegmentationController extends Controller
      * Runs the Python segmentation script using Laravel's Process facade
      * (wraps Symfony Process — arguments are escaped automatically, no
      * shell string concatenation).
+     *
+     * MPLCONFIGDIR is set explicitly because matplotlib tries to resolve
+     * the current user's home directory (Path.home()) to find/create its
+     * config cache. When Python is spawned by PHP/Apache on Windows, that
+     * lookup can fail even though the same command works fine from a
+     * normal terminal. Pointing MPLCONFIGDIR at the system temp folder
+     * sidesteps the lookup entirely.
      */
     private function runSegmentation(string $inputPath, string $runDir, ?int $k, ?string $features): void
     {
@@ -183,7 +189,9 @@ class SegmentationController extends Controller
             $args[] = $features;
         }
 
-        $result = Process::timeout(300)->run($args);
+        $result = Process::timeout(300)
+            ->env(['MPLCONFIGDIR' => sys_get_temp_dir()])
+            ->run($args);
 
         file_put_contents(
             $runDir . '/run.log',
