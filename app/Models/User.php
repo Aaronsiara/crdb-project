@@ -2,11 +2,6 @@
 
 namespace App\Models;
 
-// Laravel generates this file by default with Notifiable + Authenticatable
-// already wired up. This is the same file with one addition: isAdmin() and
-// the `role` field made fillable/hidden appropriately.
-
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -59,8 +54,7 @@ class User extends Authenticatable
 
     /**
      * The fixed list of Data Department positions selectable at
-     * registration. Keeping this as a static list (rather than a separate
-     * DB table) keeps things simple for a small team.
+     * registration / profile editing.
      */
     public static function positions(): array
     {
