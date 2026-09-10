@@ -5,116 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Dashboard') · CRDB Segmentation</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --crdb-green: #00543C;
-            --crdb-green-dark: #003D2B;
-            --crdb-gold: #F2B705;
-            --sidebar-width: 240px;
-        }
-        body { background: #f5f7fa; margin: 0; }
-
-        .sidebar {
-            position: fixed;
-            top: 0; left: 0; bottom: 0;
-            width: var(--sidebar-width);
-            background: var(--crdb-green);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            border-right: 4px solid var(--crdb-gold);
-        }
-        .sidebar .brand {
-            padding: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-        }
-        .sidebar .brand img {
-            height: 34px;
-            width: auto;
-            flex-shrink: 0;
-        }
-        .sidebar .brand .brand-text {
-            font-weight: 700;
-            font-size: 15px;
-            line-height: 1.25;
-        }
-        .sidebar .brand small {
-            display: block;
-            font-weight: 400;
-            font-size: 11px;
-            color: #cfe8db;
-            margin-top: 2px;
-        }
-        .sidebar nav { flex: 1; padding: 12px 0; }
-        .sidebar nav a {
-            display: block;
-            padding: 11px 20px;
-            color: #d7ecdf;
-            text-decoration: none;
-            font-size: 14px;
-            border-left: 3px solid transparent;
-        }
-        .sidebar nav a:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .sidebar nav a.active {
-            background: rgba(255,255,255,0.12);
-            border-left-color: var(--crdb-gold);
-            color: #fff;
-            font-weight: 600;
-        }
-        .sidebar .user-box {
-            padding: 16px 20px;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            font-size: 13px;
-        }
-        .sidebar .user-box .role {
-            display: inline-block;
-            background: var(--crdb-gold);
-            color: #3a2a00;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 10px;
-            padding: 1px 8px;
-            margin-top: 4px;
-        }
-        .sidebar .user-box form { margin-top: 10px; }
-        .sidebar .user-box button {
-            background: none;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: #fff;
-            font-size: 12px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .sidebar .user-box button:hover { background: rgba(255,255,255,0.1); }
-
-        .main-content { margin-left: var(--sidebar-width); padding: 28px 32px 60px; }
-
-        .card { border: 1px solid #e1e5eb; border-radius: 8px; margin-bottom: 22px; }
-        .card-header { background: #eef6f1; color: var(--crdb-green); font-weight: 600; }
-        .segment-pill {
-            display: inline-block;
-            background: var(--crdb-gold);
-            color: #3a2a00;
-            font-weight: 600;
-            border-radius: 12px;
-            padding: 2px 10px;
-            font-size: 12px;
-        }
-        .btn-crdb { background: var(--crdb-green); border-color: var(--crdb-green); color: #fff; }
-        .btn-crdb:hover { background: var(--crdb-green-dark); color: #fff; }
-
-        @media (max-width: 768px) {
-            .sidebar { position: static; width: 100%; border-right: none; border-bottom: 4px solid var(--crdb-gold); }
-            .main-content { margin-left: 0; }
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body>
+<body class="glass-bg">
 
 <div class="sidebar">
     <div class="brand">
@@ -132,23 +26,26 @@
     </nav>
     @auth
     <div class="user-box">
-        <div class="d-flex align-items-center gap-2 mb-1">
+        <a href="{{ route('profile.edit') }}" class="d-flex align-items-center gap-2 mb-1 text-decoration-none">
             @if (auth()->user()->avatarUrl())
                 <img src="{{ auth()->user()->avatarUrl() }}" alt="{{ auth()->user()->name }}"
                      style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--crdb-gold);">
             @else
-                <div style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">
+                <div style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:#fff;">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
             @endif
             <div>
-                <div><strong>{{ auth()->user()->name }}</strong></div>
+                <div style="color:#fff;"><strong>{{ auth()->user()->name }}</strong></div>
                 @if (auth()->user()->position)
                     <div style="font-size:11px; color:#cfe8db;">{{ auth()->user()->position }}</div>
                 @endif
             </div>
-        </div>
+        </a>
         <span class="role">{{ ucfirst(auth()->user()->role) }}</span>
+        <div class="mt-2">
+            <a href="{{ route('profile.edit') }}" style="font-size:12px; color:#d7ecdf;">Edit Profile</a>
+        </div>
         <form action="{{ route('logout') }}" method="POST">
             @csrf
             <button type="submit">Log out</button>
