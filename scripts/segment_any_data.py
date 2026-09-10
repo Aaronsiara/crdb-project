@@ -20,21 +20,15 @@ Outputs (written next to the input file, in a folder named "<input>_segmentation
     elbow_plot.png
     pca_clusters.png
 """
-import os
-import tempfile
 
-# Force matplotlib to use the system temp directory for its config cache
-os.environ['MPLCONFIGDIR'] = tempfile.gettempdir()
-
-    
 import argparse
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")  # safe for headless environments
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import pandas as pd
-import seaborn as sns
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -90,12 +84,11 @@ def find_best_k(X_scaled, max_k: int = 10) -> int:
         km.fit(X_scaled)
         inertias.append(km.inertia_)
 
-    # find the "elbow" as the point of max curvature drop-off
     if len(inertias) < 3:
         return ks[-1]
     diffs = [inertias[i] - inertias[i + 1] for i in range(len(inertias) - 1)]
     diff_ratios = [diffs[i] / diffs[i + 1] if diffs[i + 1] != 0 else 0 for i in range(len(diffs) - 1)]
-    best_idx = diff_ratios.index(max(diff_ratios)) + 1  # +1 offset for k starting at 1
+    best_idx = diff_ratios.index(max(diff_ratios)) + 1
     return ks[best_idx]
 
 
@@ -105,7 +98,7 @@ def run_pipeline(df: pd.DataFrame, features: list[str], k: int | None, auto_k: b
 
     X_scaled, valid_index = scale_features(df, features)
 
-    # Elbow plot (always generated, useful even if k is manually chosen)
+    # Elbow plot
     inertias = []
     ks_range = range(1, min(max_k, len(X_scaled) - 1) + 1)
     for kk in ks_range:
@@ -133,7 +126,6 @@ def run_pipeline(df: pd.DataFrame, features: list[str], k: int | None, auto_k: b
     km = KMeans(n_clusters=k, random_state=42, n_init=10)
     labels = km.fit_predict(X_scaled)
 
-    # Attach labels back to the full original dataframe (rows with NaNs get segment = -1)
     df_out = df.copy()
     df_out["segment"] = -1
     df_out.loc[valid_index, "segment"] = labels
@@ -146,12 +138,18 @@ def run_pipeline(df: pd.DataFrame, features: list[str], k: int | None, auto_k: b
     profile.to_csv(out_dir / "segment_profiles.csv")
 
     if n_components == 2:
+        # Plain matplotlib scatter, colored by segment — no seaborn needed.
         plt.figure(figsize=(8, 6))
-        sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=labels, palette="tab10", s=40, alpha=0.8)
+        scatter = plt.scatter(
+            X_pca[:, 0], X_pca[:, 1],
+            c=labels, cmap=cm.get_cmap("tab10"), s=40, alpha=0.8
+        )
         plt.xlabel("PC1")
         plt.ylabel("PC2")
         plt.title(f"Segments (k={k}, PCA-reduced view)")
-        plt.legend(title="Segment")
+        legend_handles = scatter.legend_elements()[0]
+        unique_labels = sorted(set(labels))
+        plt.legend(legend_handles, [f"Segment {l}" for l in unique_labels], title="Segment")
         plt.tight_layout()
         plt.savefig(out_dir / "pca_clusters.png", dpi=150)
         plt.close()
